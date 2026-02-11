@@ -11,8 +11,8 @@ A centralized platform for University Dental Clinics featuring AI-assisted stude
 ## 🛠 Tech Stack
 * **Frontend:** [Insert Tech, e.g., Flutter / React]
 * **Backend:** [Insert Tech, e.g., FastAPI / Python]
-* **Database:** PostgreSQL (Relational Data) & Data Warehouse (for Research)
-* **AI Integration:** GitHub Copilot / GPT-4 for logic optimization and unit testing.
+* **Database:** (Relational Data) & (for Research)
+* **AI Integration:** AI for logic optimization and unit testing.
 
 ---
 
