@@ -3,8 +3,10 @@
 
 
 
+
+**[▶ Watch the full walkthrough (Arabic + English narration)](https://drive.google.com/file/d/1WBq5XjIDej5w0_QpA91NRRsj4VLrzyke/view?usp=sharing
+)** · 8 min
 ### Smart Dental Allocation & Research Hub
-https://drive.google.com/file/d/1WBq5XjIDej5w0_QpA91NRRsj4VLrzyke/view?usp=sharing
 A unified data platform for Egyptian university dental clinics — fair patient-student allocation, clinical operations analytics, and research-ready datasets.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
