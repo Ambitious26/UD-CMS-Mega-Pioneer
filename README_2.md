@@ -739,13 +739,13 @@ sdarch/
 
 ### 🚧 In Progress
 
-- [ ] Cleaning pipeline — 10 of 13 files done; `academic_calendar`, `case_requirements`, `governorates` remaining
-- [ ] All 30 KPIs computed and validated against Python within ±1%
-- [ ] Remaining 5 strategic KPIs (supply-demand, bottleneck alerts, demand forecast, accreditation readiness, research pipeline)
-- [ ] 3 role-based Power BI dashboards finalized
+- [x] Cleaning pipeline 
+- [x] All 30 KPIs computed and validated against Python within ±1%
+- [x] Remaining 5 strategic KPIs (supply-demand, bottleneck alerts, demand forecast, accreditation readiness, research pipeline)
+- [x] 3 role-based Power BI dashboards finalized
 - [ ] Predictive models
-- [ ] Web app development
-- [ ] `.pbit` template distribution + scheduled refresh via data gateway
+- [x] Web app development
+- [x] `.pbit` template distribution + scheduled refresh via data gateway
 
 ### 🔮 Future
 
