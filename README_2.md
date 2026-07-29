@@ -713,7 +713,7 @@ sdarch/
 | **Mahmoud** | Team Lead · Analytics | Project operations, Python ground truth for cross-validation · cleans `appointments_treatment`, `cases` |
 | **Loay** | Senior Data Engineer / Validator | Power BI validation, escalation resource · cleans `student_case_progress`, `student_enrollments` |
 | **Marina** | Data Modeling | Power BI data model |
-| **Mohamed Ali** | Data Modeling | Schema and model support · cleans `patients`, `appointments_diagnosis` |Full-Stack Developer | Web application
+| **Mohamed Ali** | Full-Stack Developer (Web application) | Schema and model support · cleans `patients`, `appointments_diagnosis` 
 | **Aya** | Analyst | Analysis and reporting · cleans `students`, `student_keenness`, `staff`, `clinics` |
 | **Kholod** | Analyst | Analysis and reporting · cleans `academic_calendar`, `case_requirements`, `governorates` |
 
