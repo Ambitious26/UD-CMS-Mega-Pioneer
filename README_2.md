@@ -1,5 +1,5 @@
 # 🦷 SD-ARCH
-<img width="2173" height="1448" alt="ac8e5e3febfdd99882dc13bf14e74415_hd" src="https://github.com/user-attachments/assets/1285bced-397b-4434-bec4-2739651d5d45" />
+<img width="2560" height="1440" alt="SD-ARCH_DEPI_Roadmap" src="https://github.com/user-attachments/assets/78d83935-95d4-4436-8eb0-f2f199a2f3a1" />
 
 ### Smart Dental Allocation & Research Hub
 
