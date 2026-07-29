@@ -232,7 +232,78 @@ SD-ARCH replaces this with a transparent, data-driven system built on five princ
 
 ## 🧹 Cleaning Methodology
 
-We follow the same cleaning steps for every table.
+*Phase 1 — turning raw clinic data into analytics-ready form.*
+
+### What's Broken in the Raw Data
+
+| Scale | Issue |
+| --- | --- |
+| **6.5%** | of patients have missing phone numbers |
+| **2,640** | duplicate patient records with slight name variations |
+| **14** | different representations of True/False in medical flags |
+| **16** | different variants of appointment status (`Attended` / `attended` / `Present`…) |
+| **44** | variants of governorate names (`Alex` / `Alexandria` / `ALEXANDRIA`) |
+| **397** | duplicate appointment IDs from join errors |
+| **679** | impossible age values (`0`, `-1`, `150`, `999`) |
+| **~0.3%** | impossible dates (DOB in the future, appointment before registration) |
+
+### Our Cleaning Pipeline
+
+The same seven steps run against every table, in order:
+
+| # | Step | What it does |
+| --- | --- | --- |
+| 1 | **Standardize text** | Lowercase, trim whitespace, Unicode normalization |
+| 2 | **Fuzzy dedupe patients** | Levenshtein distance + DOB + phone matching |
+| 3 | **Normalize categories** | Map all variants to canonical values |
+| 4 | **Fix boolean flags** | Convert the 14 variants to `True` / `False` |
+| 5 | **Parse dates robustly** | Handle 4 format variants; flag impossibles |
+| 6 | **Validate constraints** | Remove records violating business rules |
+| 7 | **Create audit log** | Every transformation logged for traceability |
+
+> ⚠️ **Note on step 2:** near-duplicate patients are **not** merged away. The 2,640 records sharing a DOB and a similar name are linked via a `duplicate_of` column and **both rows are kept** for manual review. Only 127 *exact* duplicates are dropped, so the cleaned `patients` table holds 134,513 rows.
+
+### Cleaning Sequence per Table
+
+Every table runs through the same five core steps plus optional extras. This is the structure used in the cleaning log workbook:
+
+| Stage | What it covers |
+| --- | --- |
+| **TIP** | Header standardization (lowercase, underscores), blank-row removal |
+| **STEP 1** — Data Types | Dates → ISO (`dayfirst=True`), integers → `Int64`, IDs kept as trimmed strings |
+| **STEP 2** — Errors | Map every categorical variant to its canonical value |
+| **STEP 3** — Nulls | Distinguish acceptable nulls from defects; never silently impute |
+| **STEP 4** — Duplicates | Drop exact duplicates (keep first); flag near-duplicates |
+| **STEP 5** — Primary Key | Verify PK / composite PK uniqueness |
+| **EXTRA 1** — Encoding | Save with `encoding=utf-8-sig` so Arabic renders in Excel |
+| **EXTRA 2** — Foreign Keys | Validate FKs; save orphans for review |
+| **EXTRA 3** — Sanity | Cross-field logic (completion ≥ creation, DOB precedes registration) |
+| **EXTRA 4** — Derived | Add analysis columns (`age_group`, `completion_pct`, `duration_days`, …) |
+| **EXTRA 7** — Validation | Run the assertion script; all must pass |
+
+**The NULL rule:** when a value can't be mapped to a canonical category, set it to `NULL`. Never default it to `False` or to a "most likely" guess — an unknown must stay visibly unknown.
+
+### Cleaning Status by File
+
+Ten of thirteen files are cleaned. Tracked in [`SD-ARCH_Cleaning_Logs.xlsx`](SD-ARCH_Cleaning_Logs.xlsx) — one sheet per file, with a `Status` column for Done / Missed / Not Applicable.
+
+| # | Source file | Cleaned output | Rows in | Rows out | Owner | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | `appointments_treatment.csv` | `appointments_treatment_clean.csv` | 397,691 | 397,294 | Mahmoud | ✅ Done |
+| 2 | `cases.csv` | `cases_cleaned.csv` | 209,065 | 208,865 | Mahmoud | ✅ Done |
+| 3 | `patients.csv` | `Cleaned- Patients.xlsx` | 134,640 | 134,513 | Mohamed Ali | ✅ Done |
+| 4 | `appointments_diagnosis.csv` | `Cleaned- appointments_diagnosis.xlsx` | 126,444 | 126,314 | Mohamed Ali | ✅ Done |
+| 5 | `student_case_progress.csv` | `student_case_progress_cleaned.csv` | 96,786 | 96,736 | Loay | ✅ Done |
+| 6 | `student_enrollments.csv` | `student_enrollments_cleaned.csv` | 5,759 | 5,754 | Loay | ✅ Done |
+| 7 | `students.csv` | `student_cleaned.xlsx` | 2,718 | 2,718 | Aya | ✅ Done |
+| 8 | `student_keenness.csv` | `student_keenness_cleaned.xlsx` | 2,718 | 2,718 | Aya | ✅ Done |
+| 9 | `staff.csv` | `staff_cleaned.xlsx` | 184 | 184 | Aya | ✅ Done |
+| 10 | `clinics.csv` | `clinic_cleaned.xlsx` | 9 | 9 | Aya | ✅ Done |
+| 11 | `academic_calendar.csv` | — | 1,366 | — | Kholod | ❌ Not done |
+| 12 | `case_requirements.csv` | — | 51 | — | Kholod | ❌ Not done |
+| 13 | `governorates.csv` | — | 27 | — | Kholod | ❌ Not done |
+
+> ⚠️ `academic_calendar` is the highest-priority gap: the broken `is_active_clinic_day` flag lives in it, and it is the date dimension for the entire star schema.
 
 ### Cleaning Tools
 
@@ -247,13 +318,23 @@ We follow the same cleaning steps for every table.
 
 Every cleaning task produces 4 deliverables:
 
-**1. Data Cleaning Log** *(TBD)*
+**1. Data Cleaning Log** ✅ — [`SD-ARCH_Cleaning_Logs.xlsx`](SD-ARCH_Cleaning_Logs.xlsx)
 
-| # | Step | Column | Issue Found | Action Taken | Rows Affected | Tool |
-| --- | --- | --- | --- | --- | --- | --- |
-| 1 | Missing | | | | | |
-| 2 | Inconsistent | | | | | |
-| 3 | Outliers | | | | | |
+One sheet per source file, with the expected actions for that file. Each row records `# · Step · Column · Issue Found · Action Taken · Rows Affected · Tool · Status · Your Note`. Compare your manual log against the sheet, mark each row Done / Missed / N-A, and re-run cleaning for anything missed. If you find an issue the sheet doesn't list, raise it at the next team meeting.
+
+Representative entries:
+
+| Step | Column | Issue found | Action taken | Rows |
+| --- | --- | --- | --- | --- |
+| STEP 2 (Errors) | `status` | 16 variants (`Attended`, `ATTENDED`, `Showed`, `Came`, `Present`, `NOSHOW`, `no show`, `DNA`, `Missed`…) | Mapped to canonical 3: Attended / No-Show / Cancelled | 68,694 |
+| STEP 2 (Errors) | `governorate_en` | ~44 variant spellings (`Alex`, `ALEXANDRIA`, `الاسكندرية`…) | Mapped to the canonical 27 governorate names | 28,000 |
+| STEP 2 (Errors) | `staff_approval_status` | 14 boolean variants (`Yes`, `Y`, `1`, `True`, `نعم`…) | Mapped to True / False; unmapped → NULL | 192,540 |
+| STEP 2 (Errors) | `phone` | Format variants (`+20`, `00 20`, dashes, spaces) | Stripped to 11-digit Egyptian format; invalid → NULL | 50,000 |
+| STEP 2 (Errors) | `age_at_registration` | ~12 rows with age > 120 | Set to NULL | 12 |
+| STEP 4 (Duplicates) | `patient_id` | 2,640 near-duplicates (same DOB + similar name) | Linked via `duplicate_of`; **both rows kept** | 2,640 |
+| EXTRA 3 (Sanity) | age vs DOB | Calculated age must match recorded age | ~50 mismatches flagged | 50 |
+
+**Derived columns added during cleaning:** `appt_year`, `appt_month`, `appt_weekday`, `appt_hour`, `is_attended`, `is_no_show`, `is_cancelled` (appointments) · `age_group`, `has_any_comorbidity` (patients) · `duration_days` (cases) · `completion_pct` (student case progress).
 
 **2. Data Dictionary** *(TBD)* — Column · Type · Description · Allowed Values · Notes
 
@@ -629,12 +710,12 @@ sdarch/
 
 | Member | Role | Owns |
 | --- | --- | --- |
-| **Mahmoud** | Team Lead · Analytics | Project operations, cleaned data tables, Python ground truth for cross-validation |
-| **Loay** | Senior Data Engineer / Validator | Power BI validation, escalation resource |
+| **Mahmoud** | Team Lead · Analytics | Project operations, Python ground truth for cross-validation · cleans `appointments_treatment`, `cases` |
+| **Loay** | Senior Data Engineer / Validator | Power BI validation, escalation resource · cleans `student_case_progress`, `student_enrollments` |
 | **Marina** | Data Modeling | Power BI data model |
-| **Mohamed Ali** | Data Modeling | Schema and model support |
-| **Aya** | Analyst | Analysis and reporting |
-| **Kholod** | Analyst | Analysis and reporting |
+| **Mohamed Ali** | Data Modeling | Schema and model support · cleans `patients`, `appointments_diagnosis` |
+| **Aya** | Analyst | Analysis and reporting · cleans `students`, `student_keenness`, `staff`, `clinics` |
+| **Kholod** | Analyst | Analysis and reporting · cleans `academic_calendar`, `case_requirements`, `governorates` |
 | **Muhammad Wagdy** | Full-Stack Developer | Web application (separate track) |
 
 **Working pattern:** Mahmoud produces the Python ground truth → Loay validates it in Power BI. This producer/validator split is formalized in the SD-ARCH Statistical Analysis Guide.
@@ -658,7 +739,7 @@ sdarch/
 
 ### 🚧 In Progress
 
-- [ ] Cleaning pipeline implementation (parallel team work)
+- [ ] Cleaning pipeline — 10 of 13 files done; `academic_calendar`, `case_requirements`, `governorates` remaining
 - [ ] All 30 KPIs computed and validated against Python within ±1%
 - [ ] Remaining 5 strategic KPIs (supply-demand, bottleneck alerts, demand forecast, accreditation readiness, research pipeline)
 - [ ] 3 role-based Power BI dashboards finalized
