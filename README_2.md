@@ -713,10 +713,10 @@ sdarch/
 | **Mahmoud** | Team Lead · Analytics | Project operations, Python ground truth for cross-validation · cleans `appointments_treatment`, `cases` |
 | **Loay** | Senior Data Engineer / Validator | Power BI validation, escalation resource · cleans `student_case_progress`, `student_enrollments` |
 | **Marina** | Data Modeling | Power BI data model |
-| **Mohamed Ali** | Data Modeling | Schema and model support · cleans `patients`, `appointments_diagnosis` |
+| **Mohamed Ali** | Data Modeling | Schema and model support · cleans `patients`, `appointments_diagnosis` |Full-Stack Developer | Web application
 | **Aya** | Analyst | Analysis and reporting · cleans `students`, `student_keenness`, `staff`, `clinics` |
 | **Kholod** | Analyst | Analysis and reporting · cleans `academic_calendar`, `case_requirements`, `governorates` |
-| **Muhammad Wagdy** | Full-Stack Developer | Web application (separate track) |
+
 
 **Working pattern:** Mahmoud produces the Python ground truth → Loay validates it in Power BI. This producer/validator split is formalized in the SD-ARCH Statistical Analysis Guide.
 
